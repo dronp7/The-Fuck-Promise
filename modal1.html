@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Fuck Promise</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: #e91e63;
+        }
+        #content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #e91e63;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover {
+            background-color: #c2185b;
+        }
+        #navigation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            line-height: 2;
+        }
+    </style>
+</head>
+<body>
+    <h1>The Fuck Promise</h1>
+    <select id="storySelector">
+        <option value="">Select a title to read...</option>
+        <!-- Story options will be dynamically added here -->
+    </select>
+    <div id="content"></div>
+    <div id="navigation">
+        <button id="prevBtn" onclick="navigate(-1)">Previous</button>
+        <button id="homeBtn" onclick="showHome()">Home</button>
+        <button id="nextBtn" onclick="navigate(1)">Next</button>
+    </div>
+
+    <script>
+        const stories = [
+            // Story parts
+            { title: "The First View", file: "Thefirstview.txt", type: "Story" },
+            { title: "The First Conversation", file: "Thefirstconversation.txt", type: "Story" },
+            { title: "The LunchBox", file: "Thelunchbox.txt", type: "Story" },
+            { title: "The Unwanted Part", file: "Theunwantedpart.txt", type: "Story" },
+            { title: "The Lost Feeling", file: "Thelostfeeling.txt", type: "Story" },
+            { title: "My Perspective", file: "Myperspective.txt", type: "Story" },
+            { title: "The Unblock", file: "Theunblock.txt", type: "Story" },
+            { title: "The Special Personality", file: "Thespecialpersonality.txt", type: "Story" },
+            { title: "The Snow Of December", file: "Thesnowofdecember.txt", type: "Story" },
+            { title: "An Argument", file: "Anargument.txt", type: "Story" },
+            { title: "The Accord", file: "Theaccord.txt", type: "Story" },
+            { title: "The 14th January", file: "The14thjanuary.txt", type: "Story" },
+            { title: "Importance", file: "Importance.txt", type: "Story" },
+             { title: "Some Of My Memories", file: "someofmymemories.txt", type: "Story" },
+            { title: "The Unsure Feeling", file: "Theunsurefeeling.txt", type: "Story" },
+            { title: "The Regret", file: "Theregret.txt", type: "Story" },
+            { title: "The Realisation", file: "Therealisation.txt", type: "Story" },
+            // Poems
+            { title: "Whisper Of Love", file: "Whisperoflove.txt", type: "Poem" },
+            { title: "How I Fell For Her", file: "Howifellforher.txt", type: "Poem" },
+            { title: "An Invitation To Forever 1", file: "Aninvitationtoforever1.txt", type: "Poem" },
+            { title: "An Invitation To Forever 2", file: "Aninvitationtoforever2.txt", type: "Poem" },
+            { title: "An Invitation To Forever 3(CHIKUUU's fav)", file: "Aninvitationtoforever3.txt", type: "Poem" },
+            { title: "An Invitation To Forever 4", file: "Aninvitationtoforever4.txt", type: "Poem" },
+            // Morning texts
+            { title: "Morning Text 1", file: "mm1.txt", type: "Morning Text" },
+            { title: "Morning Text 2", file: "mm2.txt", type: "Morning Text" },
+            { title: "Morning Text 3", file: "mm3.txt", type: "Morning Text" },
+            { title: "Morning Text 4", file: "mm4.txt", type: "Morning Text" },
+            { title: "Morning Text 5", file: "mm5.txt", type: "Morning Text" },
+            { title: "Morning Text 6", file: "mm6.txt", type: "Morning Text" },
+            { title: "Morning Text 7", file: "mm7.txt", type: "Morning Text" },
+            { title: "Morning Text 8", file: "mm8.txt", type: "Morning Text" },
+            // Letters
+            { title: "Letter 1", file: "letter1.txt", type: "Letter" },
+            { title: "Letter 2", file: "letter2.txt", type: "Letter" },
+            { title: "Letter 3", file: "letter3.txt", type: "Letter" },
+            { title: "Letter 4", file: "letter4.txt", type: "Letter" },
+            { title: "Letter 5", file: "letter5.txt", type: "Letter" },
+        ];
+
+        const storySelector = document.getElementById('storySelector');
+        const contentDiv = document.getElementById('content');
+        let currentIndex = -1;
+
+        function populateSelector() {
+            stories.forEach((story, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${story.type}: ${story.title}`;
+                storySelector.appendChild(option);
+            });
+        }
+
+        function showHome() {
+            contentDiv.innerHTML = '<h2>Welcome To The Fuck Promise </h2><p>Select a story, poem, letter, or morning message from the dropdown menu above to start reading.</p>';
+            currentIndex = -1;
+            storySelector.value = '';
+            updateNavigation();
+        }
+
+        function loadStory(index) {
+            const story = stories[index];
+            fetch(story.file)
+                .then(response => response.text())
+                .then(text => {
+                    contentDiv.innerHTML = `<h2>${story.type}: ${story.title}</h2><pre>${text}</pre>`;
+                    currentIndex = index;
+                    updateNavigation();
+                })
+                .catch(error => {
+                    contentDiv.innerHTML = `<p>Error loading the file. Please make sure "${story.file}" exists.</p>`;
+                });
+        }
+
+        function navigate(direction) {
+            const newIndex = currentIndex + direction;
+            if (newIndex >= 0 && newIndex < stories.length) {
+                loadStory(newIndex);
+                storySelector.value = newIndex;
+            }
+        }
+
+        function updateNavigation() {
+            document.getElementById('prevBtn').disabled = currentIndex <= 0;
+            document.getElementById('nextBtn').disabled = currentIndex >= stories.length - 1;
+        }
+
+        storySelector.addEventListener('change', (event) => {
+            const selectedIndex = event.target.value;
+            if (selectedIndex !== '') {
+                loadStory(parseInt(selectedIndex));
+            } else {
+                showHome();
+            }
+        });
+
+        populateSelector();
+        showHome();
+    </script>
+</body>
+</html>
